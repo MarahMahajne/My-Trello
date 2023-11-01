@@ -1,0 +1,16 @@
+.workspace {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    left: 200px;
+    top: 200px;
+  }
+ 
+
+
+/* Add this CSS to improve hover effect for board items */
+.grid li:hover {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+}
+

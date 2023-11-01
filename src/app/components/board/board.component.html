@@ -1,0 +1,114 @@
+<header class="bg-emerald-600">
+  <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="flex w-full items-center justify-between border-b border-emerald-500 py-5 lg:border-none">
+      <div class="flex items-center">
+        <a routerLink="/workspace/:uid" class="font-semibold text-white hover:text-emerald-700 transition duration-300 ease-in-out" style="margin-top: 30px;">&lt; Back</a>
+      </div>
+      <div class="flex gap-4">
+        <input
+        style="margin-top: 20px;"
+        *ngIf="board"
+        (ngModelChange)="titleChanged = true"
+        class="ml-10 space-x-4 bg-white text-black font-bold rounded-md py-2 px-4 shadow-md focus:outline-none focus:ring focus:border-emerald-300"
+        [(ngModel)]="board.title"
+         />
+        <button class="font-medium text-white hover:text-emerald-700 transition duration-300 ease-in-out" *ngIf="titleChanged" (click)="saveBoardTitle()" style="margin-top:20px;">Save</button>
+      </div>
+
+      <div class="flex">
+        <button class="text-sm font-medium text-red-700 hover:text-red-800 transition duration-300 ease-in-out" style="margin-top: 20px; text-size-adjust: la;" (click)="deleteBoard()">
+          Delete board
+        </button>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<div *ngIf="showSpinner">
+  <app-loading-spinner></app-loading-spinner>
+</div>
+<main *ngIf="!showSpinner" class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+  <div class="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8">
+    <!-- ITERATE ALL LISTS -->
+    <div *ngFor="let list of lists" class="min-h-52 rounded-lg bg-white shadow-md hover:shadow-lg transition duration-300">
+      <div class="p-4 flex items-center justify-between border-b border-gray-300">
+        <div *ngIf="!editTitle[list.id]" class="text-lg font-semibold">{{ list.title }}</div>
+        <input
+          [(ngModel)]="list.title"
+          *ngIf="editTitle[list.id]"
+          class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring focus:ring-emerald-300 sm:text-sm"
+        />
+        <button class="ml-2 text-emerald-600 font-medium hover:text-emerald-800 focus:outline-none" *ngIf="!editTitle[list.id]" (click)="editingTitle(list, true)">
+          Edit
+        </button>
+        <button class="ml-2 text-emerald-600 font-medium hover:text-emerald-800 focus:outline-none" *ngIf="editTitle[list.id]" (click)="updateListTitle(list)">
+          Save
+        </button>
+      </div>
+
+      <!-- ITERATE LIST CARDS -->
+      <div class="p-4 space-y-4">
+        <div *ngFor="let card of listCards[list.id]" class="bg-gray-100 hover:bg-gray-200 rounded-md cursor-pointer transition duration-300">
+          <div *ngIf="!editCard[card.id]" class="py-2 px-4 text-sm font-semibold">{{ card.title }}</div>
+          <input
+            [(ngModel)]="card.title"
+            *ngIf="editCard[card.id]"
+            class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring focus:ring-emerald-300 sm:text-sm"
+          />
+          <div class="flex items-center justify-between p-2">
+            <div *ngIf="editCard[card.id]">
+              <button style="position: relative; left: 145px;"class="text-red-600 font-medium hover:text-red-800 focus:outline-none mr-auto" (click)="deleteCard(card)">
+                Delete
+              </button>              
+              <button style="position: relative; right: 45px;" class="text-emerald-600 font-medium hover:text-emerald-800 focus:outline-none mr-auto" (click)="updateCard(card)">
+                Update
+              </button>
+            </div>
+            <button class="text-emerald-600 font-medium hover:text-emerald-800 focus:outline-none" *ngIf="!editCard[card.id]" (click)="editingCard(card, true)">
+              Edit
+            </button>
+          </div>
+          
+        </div>
+        <div (click)="addCard(list)" class="text-emerald-600 font-medium hover:text-emerald-800 cursor-pointer">
+          + Add a card
+        </div>
+        <button class="text-red-600 font-medium hover:text-red-800 cursor-pointer" (click)="deleteBoardList(list)">
+          Delete list
+        </button>
+      </div>
+    </div>
+
+    <div (click)="addList()" class="relative h-16 rounded-lg bg-emerald-500 flex items-center justify-center text-lg font-semibold hover:cursor-pointer text-white hover:bg-emerald-600 transition duration-300">
+      + New list
+    </div>
+  </div>
+
+
+  <div class="flex items-center gap-4 py-12">
+    <span class="block text-3xl font-extrabold text-gray-900">Invite</span>
+  
+    <input
+      [(ngModel)]="addUserEmail"
+      placeholder="Email"
+      class="block rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-emerald-500 sm:text-sm"
+    />
+    <button
+      (click)="addUser()"
+      class="inline-flex items-center rounded border border-transparent bg-emerald-600 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+    >
+      Invite
+    </button>
+  </div>
+
+</main>
+
+  
+
+
+
+
+<!-- <div class="middle">
+    <div class = "text-black">{{ board.id}} </div>
+    <div class= "text-black"> {{ board.title}} </div>
+</div> -->

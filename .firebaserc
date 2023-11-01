@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "my-temp-application": {
+      "hosting": {
+        "project-manger": [
+          "my-temp-application"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "my-temp-application"
+  }
+}

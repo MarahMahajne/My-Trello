@@ -1,0 +1,51 @@
+.material-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 0 0 0 rgba(0, 0, 0, 0.12);
+    background-color: #00897B;
+  
+    .mat-toolbar {
+      height: 100%;
+      width: 100%;
+      padding: 0 16px;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    
+  
+      .mat-toolbar-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 1000px;
+  
+        .copyright {
+          margin: 0;
+          font-size: 14px;
+          font-weight: 400;
+          color: #333;
+        }
+  
+        .social-media {
+          display: flex;
+          align-items: center;
+          position: absolute;
+          margin-right: 50px;
+  
+          a {
+            color: #333;
+            text-decoration: none;
+  
+            &:hover {
+              color: #fff;
+              background-color: #333;
+            }
+          }
+        }
+      }
+    }
+  }
+  

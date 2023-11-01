@@ -1,0 +1,78 @@
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background-color: #fff;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 0 0 0 rgba(0, 0, 0, 0.12);
+    
+    .home-button {
+        position: absolute;
+        left: 300px;
+        top: 15px;
+        text-align: center;
+        font-weight: 400;
+        font-size: 40px;
+        font-weight: 400;
+        color: #333;
+        
+    }
+    
+    .contact-button {
+        position: absolute;
+        left: 370px;
+        top: 15px;
+        font-size: 40px;
+        text-align: center;
+        font-weight: 400;
+    }
+
+
+    .mat-toolbar {
+        height: 64px;
+        padding: 0 16px;
+
+        .mat-toolbar-row {
+            display: flex;
+            justify-content: space-between;
+            
+            
+            /* 30 pixels from the left edge of the parent */
+
+            h1 {
+                margin: 0;
+                font-size: 20px;
+                font-weight: 400;
+                color: #333;
+            }
+
+            .logo {
+                width: 5%;
+                height: 5%;
+            }
+            .mat-toolbar-title {
+                font-weight: bold;
+
+            }
+
+            .mat-toolbar-nav {
+                display: flex;
+                position: absolute;
+
+                a {
+                    margin-left: 16px;
+                    color: #333;
+                    text-decoration: none;
+
+                    &:hover {
+                        color: #fff;
+                        background-color: #333;
+                    }
+                }
+
+            }
+        
+        }
+    }
+}
