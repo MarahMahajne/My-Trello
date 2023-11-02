@@ -6,5 +6,8 @@ import { Component } from '@angular/core';
   styleUrls: ['./about.component.scss']
 })
 export class AboutComponent {
-
+  public bgImage:any;
+  ngOnInit(): void {
+    this.bgImage = 'url(assets/images/trelloIMG.png)';
+  }
 }

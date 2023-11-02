@@ -5,9 +5,6 @@ import { timestamp } from 'rxjs';
 
 
 
-
-
-
 export interface Board {
     id: string;
     creator_uid: string;

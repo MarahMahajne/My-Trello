@@ -4,7 +4,6 @@ export interface List {
     position: number;
     title: string;
     user_id: string;
-
     // created_at: typeof timestamp;
 }
 

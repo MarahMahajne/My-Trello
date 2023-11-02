@@ -23,7 +23,7 @@ export class RegisterComponent implements OnInit {
   constructor(public authService: AuthService ,private userService: UserService, public fb: UntypedFormBuilder, public router:Router, public snackBar: MatSnackBar, private sanitizer:DomSanitizer) { }
 
   ngOnInit() {
-    this.bgImage = this.sanitizer.bypassSecurityTrustStyle('url(assets/images/project-manger.png)');
+    this.bgImage = this.sanitizer.bypassSecurityTrustStyle('url(assets/images/trelloIMG.png)');
     this.registerForm = this.fb.group({ 
       username: ['', Validators.compose([Validators.required, Validators.minLength(6)])],
       email: ['', Validators.compose([Validators.required, emailValidator])],

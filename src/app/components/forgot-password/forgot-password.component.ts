@@ -20,7 +20,7 @@ export class ForgotPasswordComponent {
   }
 
   ngOnInit(): void {
-    this.bgImage = 'url(assets/project-manger.png)';
+    this.bgImage = 'url(assets/images/forgot-password.jpg)';
   
   }
 

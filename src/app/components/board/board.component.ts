@@ -8,6 +8,7 @@ import { List } from 'src/app/model/list'
 import { combineLatest, of, switchMap, timestamp } from 'rxjs'
 import 'firebase/compat/firestore';
 import firebase from 'firebase/compat/app';
+import { Position } from 'ngx-perfect-scrollbar'
 
 @Component({
   selector: 'app-board',
@@ -25,11 +26,11 @@ export class BoardComponent implements OnInit {
 
   listCards: any = {}
   addUserEmail = ''
-  board: Board = {
+
+   board: Board = {
     id: "",
     creator_uid: "",
     title: "",
-    // created_at: firebase.firestore.FieldValue.serverTimestamp()
   }
   user: any;
   showSpinner = true;
@@ -42,10 +43,8 @@ export class BoardComponent implements OnInit {
       if (user) 
       {
           this.user = user;
-          console.log("ok");
           this.boardId = this.route.snapshot.paramMap.get('uid');
-          console.log("board_id_in_board_componenet:");
-          console.log(this.boardId);
+      
           
           // Load general board information
           if (this.boardId) 
@@ -59,24 +58,9 @@ export class BoardComponent implements OnInit {
             console.log("Boards after initial fetch:", this.board);
             });
             this.handleRealtimeUpdates(this.boardId);
-
-            console.log("a3");
          }
       }
     }); 
-  
-    
-      // Retrieve all lists
-     
-
-      // // Retrieve cards for each list
-      // for (let list of this.lists) {
-      //   this.listCards[list.id] = await this.userService.getListCards(list.id)
-      // }
-
-      // For later...
-      // this.handleRealtimeUpdates()
-    
   }
 
   //
@@ -174,20 +158,7 @@ export class BoardComponent implements OnInit {
   async addUser() {
       try {
         const boardId = await this.userService.addUserToBoard(this.board, this.addUserEmail);
-        // const sharedBoardSnapshot = await sharedBoardRef.get();
-        
-        // if (sharedBoardSnapshot.exists) {
-        //     const sharedBoardData = sharedBoardSnapshot.data();
-        //     const user2Id = sharedBoardData.creator_uid;
-        //     const boardId = sharedBoardSnapshot.id;
-
-        //     console.log("user2:", user2Id);
-        //     this.handleRealtimeUpdates(user2Id, boardId);
-        // } else {
-        //     console.log("Shared board not found.");
-        // }
         this.handleRealtimeUpdates(boardId);
-
         this.addUserEmail = '';
     } catch (error) {
         console.error("Error adding user to board:", error);

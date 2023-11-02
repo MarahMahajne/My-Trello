@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument, CollectionReference, DocumentData } from '@angular/fire/compat/firestore';
+import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument, CollectionReference, DocumentData, DocumentReference, QuerySnapshot } from '@angular/fire/compat/firestore';
 import { Observable, map, take } from 'rxjs';
 import {User} from '../model/user'
 import { AngularFireAuth } from '@angular/fire/compat/auth';
@@ -30,35 +30,6 @@ export class UserService  {
 
   authState$: Observable<firebase.User | null> = this.fireAuth.authState;
 
-//   getuserslist(): Observable<any[]>  {
-//     // Assign the observable without subscribing here
-//     this.users.subscribe((data) => {
-//         this.users = data;
-//     });
-//   }
-
-
-//   updateUserData(uid: string, data: Partial<User>): Promise<void> {
-//     const userRef: AngularFirestoreDocument<User> = this.db.doc(
-//         `User/${uid}`
-//     );
-
-//     // Update the user document with the provided data
-//     return userRef.update(data);
-//    }
-
-//     // Add a method to get user data from Firestore
-//     getUserData(uid: string): Observable<User | undefined> {
-
-//         const userRef: AngularFirestoreDocument<User> = this.db.doc(
-//             `User/${uid}`
-//         );
-//         console.log("HI");
-//         console.log(userRef.valueChanges())
-//         return userRef.valueChanges(); 
-//     }
-
-
 
     // add user
     addUser(user: User): Promise<void> {
@@ -67,11 +38,6 @@ export class UserService  {
         );
         return userRef.set(user, { merge: true });
     }
-
-    // get user
-    // getUser( user: User) {
-    //     return this.firestoreDB.doc('/user/' + user.uid).snapshotChanges();
-    // }
 
     getUserData(uid: string): Observable<any> {
         return this.firestoreDB.collection('users').doc(`${uid}`).valueChanges();
@@ -83,7 +49,8 @@ export class UserService  {
 
     // delete user
     deleteUser(user: User) {
-      return this.firestoreDB.collection('users').doc(`${user.uid}`).delete();
+      this.firestoreDB.collection('users').doc(`${user.uid}`).delete();
+      const boardsCollection = this.firestoreDB.collection('boards').doc(`${user.uid}`).delete();
     }
 
     // update user
@@ -105,9 +72,36 @@ export class UserService  {
         return boardcollection.doc(`${boardInfo.id}`).update(boardInfo);
     }
 
-    deleteBoard(boardInfo: Board): Promise<void> {
-        const boardcollection: AngularFirestoreCollection<Board> = this.firestoreDB.collection(`boards`);
-        return boardcollection.doc(`${boardInfo.id}`).delete();
+    async deleteBoard(boardInfo: Board): Promise<void> {
+      const boardsCollection = this.firestoreDB.collection(`boards`);
+      const usersCollection = this.firestoreDB.collection(`users`);
+    
+      // Delete the board from the boards collection.
+      await boardsCollection.doc(`${boardInfo.id}`).delete();
+    
+      // Get all users who have access to the board.
+      const userBoardsCollection = this.firestoreDB.collection(`boards`).doc(`${boardInfo.id}`).collection('boardUsers');
+      
+      // Get an observable for the userBoards collection
+      const userBoardDocs$: Observable<QuerySnapshot<DocumentData>> = userBoardsCollection.get();
+    
+      // Subscribe to the observable
+      userBoardDocs$.subscribe((userBoardDocs: QuerySnapshot<DocumentData>) => {
+        const batch = this.firestoreDB.firestore.batch();
+    
+        // Iterate through the documents in the observable result and extract DocumentReference
+        userBoardDocs.docs.forEach(doc => {
+          const docRef: DocumentReference = doc.ref; // Obtain DocumentReference from QueryDocumentSnapshot
+          batch.delete(docRef);
+        });
+    
+        // Commit the batch operation to delete board references from userBoards collection.
+        batch.commit().then(() => {
+          console.log('Batch delete successful.');
+        }).catch(error => {
+          console.error('Error deleting board references:', error);
+        });
+      });
     }
 
     // CRUD Lists
@@ -123,7 +117,6 @@ export class UserService  {
         const boardcollection: AngularFirestoreCollection<Board> = this.firestoreDB.collection(`boards`);
         const boardDoc = boardcollection.doc(`${list.board_id}`)
         const listcollectiion = boardDoc.collection(`lists`);
-        console.log("clicked2!");
         const listRef = listcollectiion.add(list);
         const listID = (await listRef).id;
         await (await listRef).update({ id: listID });
@@ -153,13 +146,9 @@ export class UserService  {
       try 
        {
           const boardcollection: AngularFirestoreCollection<Board> = this.firestoreDB.collection(`boards`);
-          console.log("b4");
           const boardDoc = boardcollection.doc(`${list.board_id}`);
-          console.log("b5");
           const listcollection = boardDoc.collection(`lists`);
-          console.log("b6");
           const listDoc = listcollection.doc(`${list.id}`);
-          console.log("b7");
           return listDoc
           .collection(`cards`, ref => ref.orderBy('position'))
           .valueChanges();
@@ -170,18 +159,7 @@ export class UserService  {
           throw error; // Reject the promise if an error occurs
         }
     }
-    // async getListCards(listId: string) {
-    //     const lists = await this.supabase
-    //       .from(CARDS_TABLE)
-    //       .select('*')
-    //       .eq('list_id', listId)
-    //       .order('position');
-    
-    //     return lists.data || [];
-    //   }
-    
-   
-    
+  
 
     async addListCard(card: Card): Promise<any> {
         const boardcollection: AngularFirestoreCollection<Board> = this.firestoreDB.collection(`boards`);
@@ -219,7 +197,6 @@ export class UserService  {
             id:board.id,
             creator_uid: board.creator_uid,
             title: board.title,
-            // created_at: board.created_at
         }
         const boardcollection: AngularFirestoreCollection<Board> = this.firestoreDB.collection(`boards`);
         console.log('Board ID:',  boardData.id); 
@@ -253,12 +230,9 @@ export class UserService  {
     
     
     getUserBoards(user:User): Observable<UserBoard[]> {
-        console.log("h1");
         const userscollection: AngularFirestoreCollection<User> = this.firestoreDB.collection(`users`);
         const userDoc = userscollection.doc(`${user.uid}`);
-        console.log("h2");
         const userBoardsCollection: AngularFirestoreCollection<UserBoard>  = userDoc.collection(`userBoards`);
-        console.log("h3");
         return userBoardsCollection
         .valueChanges();
        
@@ -270,9 +244,7 @@ export class UserService  {
         try {
 
           // Find the user2 with the specified email
-          const querySnapshot = await this.firestoreDB.collection('users', ref => ref.where('email', '==', email)).get().toPromise();
-          console.log("my name");
-      
+          const querySnapshot = await this.firestoreDB.collection('users', ref => ref.where('email', '==', email)).get().toPromise();      
           if (querySnapshot && !querySnapshot.empty) {
             const user2Doc = querySnapshot.docs[0];
             console.log(user2Doc.data());
