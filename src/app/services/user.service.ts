@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument, CollectionReference, DocumentData, DocumentReference, QuerySnapshot } from '@angular/fire/compat/firestore';
-import { Observable, map, take } from 'rxjs';
+import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument, CollectionReference, DocumentData, DocumentReference, QueryDocumentSnapshot, QuerySnapshot } from '@angular/fire/compat/firestore';
+import { Observable, catchError, forkJoin, from, map, switchMap, take } from 'rxjs';
 import {User} from '../model/user'
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Board } from '../model/board';
@@ -72,37 +72,94 @@ export class UserService  {
         return boardcollection.doc(`${boardInfo.id}`).update(boardInfo);
     }
 
-    async deleteBoard(boardInfo: Board): Promise<void> {
-      const boardsCollection = this.firestoreDB.collection(`boards`);
-      const usersCollection = this.firestoreDB.collection(`users`);
+    async getAllBoardUsers(boardId: string): Promise<string[]> {
+      const users: string[] = [];
+      const boardRef = this.firestoreDB.collection('boards').doc(boardId);
     
-      // Delete the board from the boards collection.
-      await boardsCollection.doc(`${boardInfo.id}`).delete();
-    
-      // Get all users who have access to the board.
-      const userBoardsCollection = this.firestoreDB.collection(`boards`).doc(`${boardInfo.id}`).collection('boardUsers');
-      
-      // Get an observable for the userBoards collection
-      const userBoardDocs$: Observable<QuerySnapshot<DocumentData>> = userBoardsCollection.get();
-    
-      // Subscribe to the observable
-      userBoardDocs$.subscribe((userBoardDocs: QuerySnapshot<DocumentData>) => {
-        const batch = this.firestoreDB.firestore.batch();
-    
-        // Iterate through the documents in the observable result and extract DocumentReference
-        userBoardDocs.docs.forEach(doc => {
-          const docRef: DocumentReference = doc.ref; // Obtain DocumentReference from QueryDocumentSnapshot
-          batch.delete(docRef);
-        });
-    
-        // Commit the batch operation to delete board references from userBoards collection.
-        batch.commit().then(() => {
-          console.log('Batch delete successful.');
-        }).catch(error => {
-          console.error('Error deleting board references:', error);
-        });
+      const usersSnapshot = await boardRef.collection('boardUsers').get().toPromise();
+      if (usersSnapshot) {
+      usersSnapshot.forEach(userDoc => {
+        users.push(userDoc.id);
       });
     }
+    
+      return users;
+    }
+   
+
+    async updateUserBoards(users: string[], boardId: string): Promise<void> {
+      
+      users.forEach(userId => {
+        const userRef = this.firestoreDB.collection('users').doc(userId);
+        const userBoardscollection = userRef.collection(`userBoards`);
+        userBoardscollection.doc(`${boardId}`).delete();
+      });
+    }
+
+    async deleteBoard(boardInfo: Board): Promise<void> {
+      //delete board from users board
+      const boardRef = this.firestoreDB.collection('boards').doc(boardInfo.id);
+    
+      try {
+        const boardSnapshot = await boardRef.get().toPromise();
+    
+        if (!boardSnapshot) {
+          // Board does not exist, handle the error accordingly
+          throw new Error('Board not found.');
+        }
+    
+        // Step 1: Retrieve all users from the boardUsers subcollection inside the board document
+        const users = await this.getAllBoardUsers(boardInfo.id);
+    
+        // Step 2: Update user boards for each user
+        await this.updateUserBoards(users, boardInfo.id);
+    
+        // Step 3: Delete the board from the boards collection
+        const batch = this.firestoreDB.firestore.batch();
+        users.forEach(userId => {
+          const userBoardsRef = boardRef.collection('boardUsers').doc(userId);
+          batch.delete(userBoardsRef.ref);
+          
+        });
+        await batch.commit();
+
+    // Step 4: Delete the board document from the boards collection
+    await boardRef.delete(); 
+        console.log('Board successfully deleted.');
+      } catch (error) {
+        // Handle errors here
+        console.error('Error deleting board:', error);
+      }
+    }
+    
+    
+    
+    
+    
+
+    
+      // Step 4: Delete the board from the boards
+    
+    
+    
+    ///fix
+      // Delete the board from the boards collection.
+      // delete boardusers
+      // const boardUsersCollection = boardsCollection.doc(`${boardInfo.id}`).collection('boardUsers');
+      // boardUsersCollection.valueChanges().pipe(
+      //   switchMap(items => {
+      //     const batch = this.firestoreDB.firestore.batch();
+      //     items.forEach(item => {
+      //       const docRef = boardUsersCollection.doc(item['id']).ref;
+      //       batch.delete(docRef);
+      //     });
+      //     // Commit the batch operation
+      //     return batch.commit();
+      //   })
+      // );
+      // // delete board
+      // await boardsCollection.doc(`${boardInfo.id}`).delete();
+    
 
     // CRUD Lists
     getBoardLists(boardId: string): Observable<any[]> {
