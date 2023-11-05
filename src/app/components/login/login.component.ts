@@ -50,8 +50,6 @@ export class LoginComponent implements OnInit {
     console.log("hiiiiiiiiii")
     if (this.loginForm.valid) {
       const {email, password} = this.loginForm.value
-      alert(email)
-      alert(password)
       this.authService.SignIn(email, password);
   }
  }
